@@ -6,8 +6,8 @@ import { on, off, emit } from "./node_modules/kontra/kontra.mjs";
 
 const GRID_SIZE = 48;
 const TILE_SIZE = GRID_SIZE-1;
-const ROWS = 6;
-const COLS = 12;
+const ROWS = 6+2; // 6 usable 2 wrapped around
+const COLS = 12+2; // 12 usable 2 wrapped around
 let state = null;
 
 function getRandomInt(min, max) {
@@ -22,9 +22,16 @@ const ONE_CLICKED = 1;
 class GameState { 
     constructor() {
         this.state = NOTHING_CLICKED;
+        this.first = null;
     }
     render() {
-
+        if (state.state===ONE_CLICKED) {
+            const x = state.first.col * TILE_SIZE;
+            const y = state.first.row * TILE_SIZE;
+            // need to tell the tile
+            // to draw a high light
+            // so player will know
+        }
     }
     update() {
 
@@ -39,7 +46,11 @@ class Grid {
         for(let i=0;i<this.r;i++) {
             let tmp = [];
             for (let j=0;j<this.c;j++) {
-                tmp[j] = 0;
+                if ((i===0) || (j===0) || (j===COLS-1) || (i===ROWS-1)) {
+                    tmp[j] = 0;
+                } else {
+                    tmp[j] = getRandomInt(1,4);
+                }
             }
             this.data[i] = tmp;
         }
@@ -51,8 +62,8 @@ class Grid {
             let tmp = [];
             for (let j=0;j<this.c;j++) {
                 x += 48;
-                const color = getRandomInt(1,4);
                 let color_string = "";
+                const color = this.data[i][j];
                 if (color===1) color_string = "green";
                 if (color===2) color_string = "red";
                 if (color===3) color_string = "blue";
@@ -62,9 +73,18 @@ class Grid {
                     y: y,
                     width : 47, height : 47,
                     color : color_string,
+                    selected : false,
                     onUp: () => {
                         emit("click", {r:i,c:j,color:color_string});
                     }
+                    /*
+                    render : function() {
+                        this.context.fillStyle = this.color;
+                        this.context.rect(this.x,this.y,this.width,this.height);
+                        //this.context.beginPath();
+                        this.context.fill();
+                    }
+                    */
                 });
                 track(tmp[j]);
             }
@@ -96,7 +116,24 @@ on("game_start", () => {
 });
 
 on("click", (item) => {
-    console.log("item clicked",item)
+    console.log("item clicked",item);
+    if (state.state===NOTHING_CLICKED) {
+        // keep up with what was clicked
+        state.first = {
+            row : item.r,
+            col : item.c,
+            color : item.color
+        }
+        // draw it differently now
+
+        // change state to ONE_CLICKED
+        state.state = ONE_CLICKED;
+
+        console.log(state);
+    } else if (state.state===ONE_CLICKED) {
+        // does the color match the first click?
+        // change state?SS
+    }
 });
 
 function main() {
@@ -118,8 +155,8 @@ function main() {
             state.update();
         },
         render: function() {
-            grid.render();
             state.render();
+            grid.render();
         } 
     });
     loop.start()
