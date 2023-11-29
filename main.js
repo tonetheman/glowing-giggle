@@ -3,18 +3,15 @@
 import { init, Sprite, GameLoop } from "./node_modules/kontra/kontra.mjs";
 import { initPointer, track } from "./node_modules/kontra/kontra.mjs";
 import { on, off, emit } from "./node_modules/kontra/kontra.mjs";
+import { getRandomInt } from "./randomfunc.js";
+import {PF} from "./node_modules/pathfinding/visual/lib/pathfinding-browser.min.js";
 
 const GRID_SIZE = 48;
 const TILE_SIZE = GRID_SIZE-1;
 const ROWS = 6+2; // 6 usable 2 wrapped around
 const COLS = 12+2; // 12 usable 2 wrapped around
 let state = null;
-
-function getRandomInt(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min) + min); // The maximum is exclusive and the minimum is inclusive
-}
+const pf_grid = new PF.Grid(ROWS,COLS);
 
 const NOTHING_CLICKED = 0;
 const ONE_CLICKED = 1;
@@ -38,6 +35,15 @@ class GameState {
     }
 }
 
+function get_color_string(color) {
+    if (color===1) return "green";
+    if (color===2) return "red";
+    if (color===3) return "blue";
+    if (color===4) return "yellow";
+    if (color===5) return "pink";
+    return "white";
+}
+
 class Grid {
     constructor(r,c) {
         this.r = r;
@@ -49,7 +55,7 @@ class Grid {
                 if ((i===0) || (j===0) || (j===COLS-1) || (i===ROWS-1)) {
                     tmp[j] = 0;
                 } else {
-                    tmp[j] = getRandomInt(1,4);
+                    tmp[j] = getRandomInt(1,6);
                 }
             }
             this.data[i] = tmp;
@@ -62,11 +68,8 @@ class Grid {
             let tmp = [];
             for (let j=0;j<this.c;j++) {
                 x += 48;
-                let color_string = "";
                 const color = this.data[i][j];
-                if (color===1) color_string = "green";
-                if (color===2) color_string = "red";
-                if (color===3) color_string = "blue";
+                const color_string = get_color_string(color);
 
                 tmp[j] = Sprite({
                     x: x,
@@ -93,7 +96,6 @@ class Grid {
                     },
                     render : function() {
                         if (this.selected) {
-                            console.log("selected render");
                             this.context.fillStyle = 'yellow';
                             this.context.fillRect(0,0,this.width+1,this.height+1);
                         }
@@ -108,12 +110,15 @@ class Grid {
             this.sprites[i] = tmp;
         }
     }
+
     set(r,c,v) {
         this.data[r][c] = v;
     }
+
     get(r,c) {
         return this.data[r][c];
     }
+
     render() {
         for (let i=0;i<this.r;i++) {
             for (let j=0;j<this.c;j++) {
@@ -121,6 +126,7 @@ class Grid {
             }
         }
     }
+
     update() {
 
     }
