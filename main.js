@@ -74,17 +74,32 @@ class Grid {
                     width : 47, height : 47,
                     color : color_string,
                     selected : false,
-                    onUp: () => {
+                    onUp: function() {
                         emit("click", {r:i,c:j,color:color_string});
-                    }
-                    /*
+                        
+                        // check state
+                        if ((state.state===ONE_CLICKED) || (state.state===NOTHING_CLICKED)) {
+
+
+                            if (this.selected) {
+                                this.selected = false;
+                            } else {
+                                this.selected = true;
+                            }            
+    
+
+                        }
+
+                    },
                     render : function() {
+                        if (this.selected) {
+                            console.log("selected render");
+                            this.context.fillStyle = 'yellow';
+                            this.context.fillRect(0,0,this.width+1,this.height+1);
+                        }
                         this.context.fillStyle = this.color;
-                        this.context.rect(this.x,this.y,this.width,this.height);
-                        //this.context.beginPath();
-                        this.context.fill();
-                    }
-                    */
+                        this.context.fillRect(1, 1, this.width-1, this.height-1);     
+                    },            
                 });
                 track(tmp[j]);
             }
